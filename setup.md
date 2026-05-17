@@ -9,13 +9,12 @@
 This guide sets up the `kernel_space` content project with:
 
 - A **Git repository** on the local dev drive (source of truth)
-- An **Obsidian-compatible folder structure** for notes and scripts
-- A **one-way rsync** from the git repo → Obsidian vault (so content is viewable in Obsidian without polluting OneDrive with build artifacts or hidden files)
-- A **launchd agent** on Mac for automatic background sync
+- A **simple folder structure** for notes and scripts
+- **Simple, manual workflow** — edit files in the repo, commit to git
 
 ```
-[Git Repo on Dev Drive]  ──rsync──▶  [Obsidian Vault on OneDrive]
-   (source of truth)                    (read/view in Obsidian)
+[Git Repo on Dev Drive]
+   (source of truth)
 ```
 
 ---
@@ -32,25 +31,9 @@ Ask the user for each of the following:
    - Default suggestion: `~/Dev/kernel_space`
    - Example: `/Users/yourname/Dev/kernel_space`
 
-2. **OBSIDIAN_VAULT** — Full path to the root of the Obsidian vault (the OneDrive-synced folder)
-   - Example: `/Users/yourname/OneDrive/ObsidianVault`
-   - Tip: Ask user to right-click the folder and copy the path
-
-3. **OBSIDIAN_SUBFOLDER** — Name of the subfolder inside the vault for this project
-   - Default: `kernel_space`
-   - Result: content will appear at `$OBSIDIAN_VAULT/kernel_space/`
-
-4. **ONEDRIVE_EXISTING** — Are there any existing `kernel_space` files currently inside the OneDrive vault that need to be migrated?
-   - Yes / No
-   - If yes: What is the path? Example: `/Users/yourname/OneDrive/ObsidianVault/kernel_space`
-
-5. **GIT_REMOTE** — Do you have a remote git repository (GitHub/GitLab) to push to?
+2. **GIT_REMOTE** — Do you have a remote git repository (GitHub/GitLab) to push to?
    - Yes / No
    - If yes: provide the remote URL (e.g., `git@github.com:username/kernel_space.git`)
-
-6. **SYNC_INTERVAL** — How often should auto-sync run (in seconds)?
-   - Default: `300` (every 5 minutes)
-   - Options: 60 / 300 / 600
 
 ### CONFIRM: Summary
 
@@ -59,11 +42,8 @@ After collecting answers, display a summary like this and ask the user to confir
 ```
 Here's what I'll set up:
 
-  Git repo:         ~/Dev/kernel_space
-  Obsidian target:  ~/OneDrive/ObsidianVault/kernel_space
-  Migrate from:     ~/OneDrive/ObsidianVault/kernel_space (existing)
-  Git remote:       git@github.com:username/kernel_space.git
-  Auto-sync every:  300 seconds
+  Git repo:      ~/Dev/kernel_space
+  Git remote:    git@github.com:username/kernel_space.git
 
 Proceed? (yes/no)
 ```
@@ -78,61 +58,20 @@ Proceed? (yes/no)
 # 1. Verify git is installed
 git --version
 
-# 2. Verify rsync is available
-rsync --version
-
-# 3. Check that DEV_DIR parent exists
+# 2. Check that DEV_DIR parent exists
 # If ~/Dev doesn't exist, ask user: "Should I create ~/Dev as well?"
 ls "$(dirname $DEV_DIR)"
 
-# 4. Check that OBSIDIAN_VAULT exists and is accessible
-ls "$OBSIDIAN_VAULT"
-
-# 5. Check that DEV_DIR doesn't already exist (prevent overwrite)
+# 3. Check that DEV_DIR doesn't already exist (prevent overwrite)
 # If it exists, ask: "A folder already exists at $DEV_DIR. Should I use it as-is, or abort?"
 ls "$DEV_DIR" 2>/dev/null && echo "EXISTS" || echo "OK"
 ```
 
 ---
 
-## Phase 2 — Migration (if applicable)
+## Phase 2 — Git Repository Setup
 
-> **AI Agent:** Only run this phase if the user answered YES to ONEDRIVE_EXISTING. Otherwise skip to Phase 3.
-
-### Step 2.1 — Backup First
-
-```bash
-# Create a timestamped backup of the existing OneDrive folder before touching it
-BACKUP_PATH="${OBSIDIAN_VAULT}/kernel_space_backup_$(date +%Y%m%d_%H%M%S)"
-cp -r "$ONEDRIVE_EXISTING" "$BACKUP_PATH"
-echo "Backup created at: $BACKUP_PATH"
-```
-
-### CONFIRM: Show what will be moved
-
-```
-I'll move:
-  FROM: $ONEDRIVE_EXISTING
-  TO:   $DEV_DIR
-
-A backup has been saved to: $BACKUP_PATH
-
-Proceed with move? (yes/no)
-```
-
-### Step 2.2 — Move to Dev Drive
-
-```bash
-# Move files to dev drive location
-mv "$ONEDRIVE_EXISTING" "$DEV_DIR"
-echo "Files moved to $DEV_DIR"
-```
-
----
-
-## Phase 3 — Git Repository Setup
-
-### Step 3.1 — Initialise Git Repo
+### Step 2.1 — Initialise Git Repo
 
 ```bash
 # If DEV_DIR doesn't exist yet, create it
@@ -144,7 +83,7 @@ git init
 git branch -M main
 ```
 
-### Step 3.2 — Create .gitignore
+### Step 2.2 — Create .gitignore
 
 Create the file `$DEV_DIR/.gitignore` with this content:
 
@@ -153,7 +92,7 @@ Create the file `$DEV_DIR/.gitignore` with this content:
 .DS_Store
 Thumbs.db
 
-# Hidden files and folders (Obsidian metadata, etc.)
+# Hidden files and folders
 .*
 
 # Node / JS build artifacts
@@ -169,7 +108,7 @@ __pycache__/
 .venv/
 *.egg-info/
 
-# Video / Audio production (large files — use external storage)
+# Video / Audio production (large files)
 assets/raw/
 assets/exports/
 *.mp4
@@ -179,10 +118,6 @@ assets/exports/
 *.wav
 *.aiff
 
-# Remotion build output
-remotion/out/
-remotion/.cache/
-
 # Logs
 *.log
 
@@ -190,13 +125,9 @@ remotion/.cache/
 .env
 .env.local
 .env.*
-
-# Sync script runtime files
-sync/.last_sync
-sync/*.pid
 ```
 
-### Step 3.3 — Create Project Structure
+### Step 2.3 — Create Project Structure
 
 ```bash
 cd "$DEV_DIR"
@@ -207,16 +138,10 @@ mkdir -p scripts
 mkdir -p notes
 mkdir -p research
 
-# Assets (heavy files, not synced to Obsidian)
+# Assets (heavy files)
 mkdir -p assets/raw
 mkdir -p assets/exports
 mkdir -p assets/graphics
-
-# Sync tooling
-mkdir -p sync
-
-# Remotion (for branded animations, created later)
-# mkdir -p remotion   # uncomment when ready
 
 # Keep empty dirs tracked by git
 touch assets/raw/.gitkeep
@@ -224,7 +149,7 @@ touch assets/exports/.gitkeep
 touch assets/graphics/.gitkeep
 ```
 
-### Step 3.4 — Create README.md
+### Step 2.4 — Create README.md
 
 Create `$DEV_DIR/README.md` with this content:
 
@@ -243,14 +168,7 @@ Create `$DEV_DIR/README.md` with this content:
 | `scripts/` | Video scripts, one folder per video |
 | `notes/` | General notes and research |
 | `research/` | Deep-dive research notes per topic |
-| `assets/` | Graphics, raw footage, exports (not synced to Obsidian) |
-| `sync/` | rsync scripts and launchd config for Obsidian sync |
-
-## Obsidian Sync
-
-Content is one-way synced from this repo → Obsidian vault via rsync.
-Run manually: `bash sync/sync-to-obsidian.sh`
-Auto-sync via launchd runs every 5 minutes in the background.
+| `assets/` | Graphics, raw footage, exports |
 
 ## Scripts Naming Convention
 
@@ -264,22 +182,19 @@ scripts/
     script.md
     notes.md
 ```
+
+## Day-to-Day Workflow
+
+```
+Write/edit files in the repo
+  ↓
+git add . && git commit -m "..."
+  ↓
+git push origin main
+```
 ```
 
-### Step 3.5 — Seed Project Document
-
-```bash
-# Copy the project document into _project/
-cat > "$DEV_DIR/_project/project-doc.md" << 'PROJECTDOC'
-# kernel_space — Project Document
-
-[Paste content from the kernel_space project document here]
-PROJECTDOC
-```
-
-> **AI Agent:** If the project document content is available in context, write it directly into `_project/project-doc.md` instead of the placeholder above.
-
-### Step 3.6 — Create Video Script Scaffolds
+### Step 2.5 — Create Video Script Scaffolds
 
 ```bash
 cd "$DEV_DIR"
@@ -298,7 +213,7 @@ do
 done
 ```
 
-### Step 3.7 — Initial Commit
+### Step 2.6 — Initial Commit
 
 ```bash
 cd "$DEV_DIR"
@@ -306,7 +221,7 @@ git add .
 git commit -m "chore: init kernel_space project structure"
 ```
 
-### Step 3.8 — Add Remote (if provided)
+### Step 2.7 — Add Remote (if provided)
 
 ```bash
 # Only run if user provided a remote URL
