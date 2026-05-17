@@ -231,184 +231,7 @@ git push -u origin main
 
 ---
 
-## Phase 4 — Obsidian Sync Setup
-
-### Step 4.1 — Create rsync Exclude File
-
-Create `$DEV_DIR/sync/.rsync-exclude` with this content:
-
-```
-# Hidden files and folders (Obsidian, git, DS_Store etc.)
-.*
-
-# Git internals
-.git/
-.gitignore
-
-# Build artifacts
-node_modules/
-dist/
-build/
-__pycache__/
-*.pyc
-.venv/
-
-# Assets (large binary files)
-assets/raw/
-assets/exports/
-*.mp4
-*.mov
-*.avi
-*.mkv
-*.wav
-*.aiff
-
-# Remotion
-remotion/node_modules/
-remotion/out/
-remotion/.cache/
-remotion/public/
-
-# Sync tooling itself (no need in Obsidian)
-sync/
-
-# Logs and env
-*.log
-.env
-.env.*
-
-# gitkeep files
-.gitkeep
-```
-
-### Step 4.2 — Create Sync Script
-
-Create `$DEV_DIR/sync/sync-to-obsidian.sh` with this content (replace paths with actual resolved values):
-
-```bash
-#!/usr/bin/env bash
-# sync-to-obsidian.sh
-# One-way sync from kernel_space git repo → Obsidian vault folder
-# Source of truth: git repo. Never edit files from the Obsidian side.
-
-set -euo pipefail
-
-SOURCE="$DEV_DIR/"
-DEST="$OBSIDIAN_VAULT/$OBSIDIAN_SUBFOLDER/"
-EXCLUDE_FILE="$DEV_DIR/sync/.rsync-exclude"
-LOG_FILE="$DEV_DIR/sync/sync.log"
-
-# Ensure destination exists
-mkdir -p "$DEST"
-
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting sync..." | tee -a "$LOG_FILE"
-
-rsync -av \
-  --exclude-from="$EXCLUDE_FILE" \
-  --delete \
-  "$SOURCE" \
-  "$DEST" \
-  >> "$LOG_FILE" 2>&1
-
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] Sync complete." | tee -a "$LOG_FILE"
-```
-
-```bash
-# Make it executable
-chmod +x "$DEV_DIR/sync/sync-to-obsidian.sh"
-```
-
-> **Important:** The `--delete` flag removes files from the Obsidian folder that no longer exist in the repo. This keeps them in sync. Files should always be edited in the git repo, never in the Obsidian vault directly.
-
-### Step 4.3 — Test the Sync Manually
-
-```bash
-bash "$DEV_DIR/sync/sync-to-obsidian.sh"
-
-# Verify files appeared in Obsidian vault
-ls "$OBSIDIAN_VAULT/$OBSIDIAN_SUBFOLDER/"
-```
-
-> **AI Agent:** Show the user the output and confirm files appeared correctly before setting up auto-sync.
-
-### Step 4.4 — Set Up launchd Auto-Sync (Mac)
-
-Create `$DEV_DIR/sync/com.kernelspace.obsidian-sync.plist` with this content (replace paths with actual resolved values):
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
-  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>Label</key>
-  <string>com.kernelspace.obsidian-sync</string>
-
-  <key>ProgramArguments</key>
-  <array>
-    <string>/bin/bash</string>
-    <string>$DEV_DIR/sync/sync-to-obsidian.sh</string>
-  </array>
-
-  <key>StartInterval</key>
-  <integer>$SYNC_INTERVAL</integer>
-
-  <key>RunAtLoad</key>
-  <true/>
-
-  <key>StandardOutPath</key>
-  <string>$DEV_DIR/sync/launchd.log</string>
-
-  <key>StandardErrorPath</key>
-  <string>$DEV_DIR/sync/launchd-error.log</string>
-</dict>
-</plist>
-```
-
-```bash
-# Install the launchd agent
-PLIST_DEST="$HOME/Library/LaunchAgents/com.kernelspace.obsidian-sync.plist"
-cp "$DEV_DIR/sync/com.kernelspace.obsidian-sync.plist" "$PLIST_DEST"
-
-# Load it (starts immediately and on every login)
-launchctl load "$PLIST_DEST"
-
-# Verify it's running
-launchctl list | grep kernelspace
-```
-
-### Step 4.5 — Add Sync Log to .gitignore
-
-```bash
-echo "sync/sync.log" >> "$DEV_DIR/.gitignore"
-echo "sync/launchd.log" >> "$DEV_DIR/.gitignore"
-echo "sync/launchd-error.log" >> "$DEV_DIR/.gitignore"
-
-git add .gitignore
-git commit -m "chore: ignore sync logs"
-```
-
----
-
-## Phase 5 — Obsidian Configuration
-
-> **AI Agent:** These steps are manual — guide the user through them verbally.
-
-1. Open **Obsidian**
-2. Go to **Settings → Files and Links**
-   - Set **Default location for new notes** to a folder of your choice (not the root)
-3. Verify that `kernel_space/` appears in the vault file explorer
-4. Optionally: **right-click `kernel_space/`** → Pin to top
-5. Recommended plugins to enable:
-   - **Dataview** — query your scripts/notes as a database
-   - **Templater** — create script/note templates
-   - **Git** (Obsidian Git plugin) — optional, shows git status inside Obsidian
-
-> **Note:** Do NOT use Obsidian Git to commit from the Obsidian side. Always commit from the terminal in `$DEV_DIR`. Obsidian is view-only for this project.
-
----
-
-## Phase 6 — Final Verification
+## Phase 3 — Final Verification
 
 > **AI Agent:** Run all of these and confirm success with the user.
 
@@ -420,14 +243,8 @@ git log --oneline
 # 2. Project structure is correct
 find "$DEV_DIR" -not -path '*/.git/*' -type f | sort
 
-# 3. Obsidian vault has synced content
-ls "$OBSIDIAN_VAULT/$OBSIDIAN_SUBFOLDER/"
-
-# 4. launchd agent is loaded
-launchctl list | grep kernelspace
-
-# 5. Sync log exists and shows success
-tail -5 "$DEV_DIR/sync/sync.log"
+# 3. Check git status
+git status
 ```
 
 ### CONFIRM: Setup Complete
@@ -437,15 +254,12 @@ Display this summary to the user:
 ```
 ✅ Setup complete!
 
-  Git repo:          $DEV_DIR
-  Obsidian view:     $OBSIDIAN_VAULT/$OBSIDIAN_SUBFOLDER/
-  Auto-sync:         every $SYNC_INTERVAL seconds via launchd
-  Manual sync:       bash $DEV_DIR/sync/sync-to-obsidian.sh
-
+  Git repo:    $DEV_DIR
+  
 Next steps:
-  1. Open Obsidian and verify kernel_space/ appears in the vault
-  2. Add your video scripts to scripts/video-01-channel-intro/script.md
-  3. Run: cd $DEV_DIR && git status
+  1. Add your video scripts to scripts/video-01-channel-intro/script.md
+  2. Run: cd $DEV_DIR && git status
+  3. Commit changes: git add . && git commit -m "your message"
   4. Push to remote: git push origin main
 ```
 
@@ -454,26 +268,9 @@ Next steps:
 ## Reference: Day-to-Day Workflow
 
 ```
-Write/edit files in $DEV_DIR  (terminal, Cursor, VS Code)
-  ↓
-Files auto-sync to Obsidian every $SYNC_INTERVAL seconds
-  ↓
-git add . && git commit -m "..." && git push
-```
-
-### Manual sync (on demand)
-```bash
-bash ~/Dev/kernel_space/sync/sync-to-obsidian.sh
-```
-
-### Unload auto-sync (if needed)
-```bash
-launchctl unload ~/Library/LaunchAgents/com.kernelspace.obsidian-sync.plist
-```
-
-### Reload auto-sync
-```bash
-launchctl load ~/Library/LaunchAgents/com.kernelspace.obsidian-sync.plist
+1. Edit files in the repo  (terminal, Cursor, VS Code)
+2. git add . && git commit -m "your message"
+3. git push origin main
 ```
 
 ---
@@ -482,8 +279,6 @@ launchctl load ~/Library/LaunchAgents/com.kernelspace.obsidian-sync.plist
 
 | Problem | Fix |
 |---|---|
-| Files not appearing in Obsidian | Run manual sync, check `sync/sync.log` for errors |
-| launchd not running | Run `launchctl list \| grep kernelspace` — if missing, re-run load command |
-| rsync deleting files you want | Check `.rsync-exclude` — the `--delete` flag removes anything not in source |
-| OneDrive storage bloating | Ensure `assets/raw/` and `assets/exports/` are in both `.gitignore` and `.rsync-exclude` |
-| Obsidian shows old content | launchd syncs every N seconds — run manual sync or reduce `StartInterval` |
+| Git command not found | Ensure git is installed: `brew install git` |
+| Permission denied on git push | Check SSH keys are set up for GitHub/GitLab |
+| Files not showing in git | Check `.gitignore` isn't excluding them, or run `git status` |

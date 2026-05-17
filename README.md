@@ -12,19 +12,7 @@
 | `scripts/` | Video scripts, one folder per video |
 | `notes/` | General notes and research |
 | `research/` | Deep-dive research notes per topic |
-| `assets/` | Graphics, raw footage, exports (not synced to Obsidian) |
-| `sync/` | rsync scripts and launchd config for Obsidian sync |
-
-## Obsidian Sync
-
-Content is one-way synced from this repo → Obsidian vault via rsync.
-
-**Manual sync:**
-```bash
-bash sync/sync-to-obsidian.sh
-```
-
-**Auto-sync:** Runs every 60 seconds via launchd in the background.
+| `assets/` | Graphics, raw footage, exports |
 
 ## Scripts Naming Convention
 
@@ -42,9 +30,9 @@ scripts/
 ## Day-to-Day Workflow
 
 ```
-Write/edit files in dev directory  (terminal, Cursor, VS Code)
-  ↓
-Files auto-sync to Obsidian every 60 seconds
-  ↓
-git add . && git commit -m "..." && git push
+1. Edit files in your IDE or terminal
+2. git add . && git commit -m "your message"
+3. git push origin main
 ```
+
+That's it! Simple, straightforward version control.
