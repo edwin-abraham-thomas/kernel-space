@@ -1,0 +1,57 @@
+# repo
+scratchpad.txt
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Hidden files and folders
+.obsidian/
+.vscode/
+.idea/
+
+# Node / JS build artifacts
+node_modules/
+dist/
+build/
+.next/
+out/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+
+# Video / Audio production (large files — use external storage)
+assets/raw/
+assets/exports/
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.wav
+*.aiff
+
+# Remotion build output
+remotion/out/
+remotion/.cache/
+remotion/build/
+
+# Episode-local generated outputs
+scripts/**/build/
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+.env.*
+
+# Sync script runtime files
+sync/.last_sync
+sync/*.pid
+sync/sync.log
+sync/launchd.log
+sync/launchd-error.log

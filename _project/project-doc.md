@@ -218,13 +218,18 @@ Each video folder contains:
 - `script.md` for voiceover only
 - `production.md` for visuals, structure, overlays, pacing, and dependencies
 - `status.md` for workflow state, blockers, and revisions
+- `prompts.md` for episode-specific prompts and reusable AI briefs
+- `guide.md` for episode-specific execution and handoff notes
+- `artifacts.md` for build artifact manifests, render commands, and output paths
+- `build/` for local generated outputs that should stay episode-local and ignored from git
 
 Expected working sequence:
 
 1. Plan or refine `production.md`
 2. Write `script.md` from that structure
-3. Package visuals, dependencies, and blockers
-4. Record, edit, and publish
+3. Document prompts, execution notes, and artifact/output paths inside the same episode folder
+4. Package visuals, dependencies, and blockers
+5. Record, edit, and publish
 
 ## Working Rules for Agents and Future Sessions
 

@@ -1,8 +1,14 @@
 # Status: video-04-hobby-vs-production-ai
 
 ## Workflow
+- [ ] Draft production plan
 - [ ] Draft script
+- [ ] Document prompts
+- [ ] Document episode guide
+- [ ] Document artifact/build plan
 - [ ] Record voiceover
+- [ ] Capture screen footage
+- [ ] Render build assets
 - [ ] Edit video
 - [ ] Publish
 

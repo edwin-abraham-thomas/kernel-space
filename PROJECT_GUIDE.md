@@ -81,6 +81,9 @@ kernel-space/
 ├── _project/                   # 📊 Project documents
 │   └── (project planning, strategy, phase docs)
 │
+├── remotion/                   # 🎞️ Motion graphics workspace
+│   └── (shared branded compositions and rendering app)
+│
 ├── notes/                      # 📝 General notes
 │   └── (miscellaneous notes, ideas, references)
 │
@@ -116,8 +119,19 @@ Each video has its own folder with three key files:
 scripts/video-01-channel-intro/
 ├── script.md          # ← RECORDING SCRIPT (what you read/voiceover)
 ├── production.md      # ← PRODUCTION NOTES (shots, overlays, timing)
-└── status.md          # ← WORKFLOW TRACKING (draft→recorded→edited→published)
+├── status.md          # ← WORKFLOW TRACKING (blockers and readiness)
+├── prompts.md         # ← EPISODE-SPECIFIC PROMPTS / AGENT BRIEFS
+├── guide.md           # ← EPISODE EXECUTION GUIDE / HANDOFF NOTES
+├── artifacts.md       # ← BUILD ARTIFACT MANIFEST / RENDER OUTPUTS
+└── build/             # ← GENERATED OUTPUTS (ignored from git)
 ```
+
+### Folder Rules
+
+- Episode-specific prompts stay in that episode folder, not in `_project/` or root docs.
+- Episode-specific guides, capture instructions, render notes, and handoff notes stay in that episode folder.
+- Generated outputs such as stills, teaser renders, and local export files go into that episode's `build/` directory.
+- Shared strategy and global channel guides stay in `_project/`, `README.md`, or `PROJECT_GUIDE.md`.
 
 ### File Purposes
 
@@ -185,6 +199,41 @@ scripts/video-01-channel-intro/
   - Need better B-roll footage
   ```
 
+#### `prompts.md` — Episode Prompt Log
+- **What it is:** Reusable prompts or agent briefs that materially shaped this episode
+- **Use it for:**
+  - creative-direction prompts
+  - script rewrite or polish prompts
+  - visual or Remotion prompts
+  - one-off prompt variations worth preserving for future passes
+- **Keep it:** specific to the episode, concise, and reusable
+
+#### `guide.md` — Episode Execution Guide
+- **What it is:** The operational guide for executing the episode
+- **Use it for:**
+  - recording order
+  - capture plan
+  - render or export steps
+  - episode-specific handoff notes
+  - decisions that affect execution but do not belong in `script.md`
+
+#### `artifacts.md` — Artifact Manifest
+- **What it is:** The inventory of build artifacts, render commands, output paths, and current asset state
+- **Use it for:**
+  - composition IDs
+  - render commands
+  - output file paths
+  - latest generated still or video references
+  - notes on what has or has not been rendered yet
+
+#### `build/` — Generated Outputs
+- **What it is:** Local build outputs for that episode
+- **Examples:**
+  - rendered stills
+  - teaser MP4s
+  - local export previews
+- **Git rule:** ignored from git, but documented in `artifacts.md`
+
 ---
 
 ## 📄 File Formats & Templates
@@ -225,7 +274,7 @@ print("hello")
 1. Create folder: `scripts/video-XX-title/`
 2. Add three files:
    ```bash
-   touch scripts/video-XX-title/{script.md,production.md,status.md}
+  touch scripts/video-XX-title/{script.md,production.md,status.md,prompts.md,guide.md,artifacts.md}
    ```
 3. Use templates below or copy from existing video
 4. Commit: `git add . && git commit -m "feat: add video-XX scaffolding"`
@@ -263,13 +312,63 @@ print("hello")
 # Status: video-XX-title
 
 ## Workflow
+- [ ] Draft production plan
 - [ ] Draft script
+- [ ] Document prompts
+- [ ] Document episode guide
+- [ ] Document artifact/build plan
 - [ ] Record voiceover
+- [ ] Capture screen footage
+- [ ] Render build assets
 - [ ] Edit video
 - [ ] Publish
 
 ## Notes
 (Any blockers, revisions, etc.)
+```
+
+**Prompts template:**
+```markdown
+# Prompts: video-XX-title
+
+## Planning
+(Reusable planning prompt or agent brief)
+
+## Script
+(Reusable script-writing or polish prompt)
+
+## Visual / Build
+(Reusable visual, Remotion, or render prompt)
+```
+
+**Guide template:**
+```markdown
+# Guide: video-XX-title
+
+## Source Files
+- `script.md`
+- `production.md`
+- `status.md`
+
+## Execution Plan
+(Recording, capture, render, or handoff notes)
+
+## Output Location
+- `build/`
+```
+
+**Artifacts template:**
+```markdown
+# Artifacts: video-XX-title
+
+## Output Folder
+- `build/`
+
+## Render Commands
+(Episode-specific commands)
+
+## Current Artifacts
+(Still renders, previews, exports)
 ```
 
 ---
